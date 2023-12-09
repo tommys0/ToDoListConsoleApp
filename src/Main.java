@@ -1,6 +1,7 @@
 import java.io.*;
-        import java.util.ArrayList;
-        import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -21,12 +22,13 @@ public class Main {
 
         System.out.println("Welcome to your To-Do List!");
 
-        while (true) {
+        boolean exit = false;
+        do {
             displayMenuOptions();
 
             String userInput = scanner.nextLine();
-            handleUserInput(userInput, tasks);
-        }
+            exit = handleUserInput(userInput, tasks);
+        } while (!exit);
     }
 
     private static void displayMenuOptions() {
@@ -36,15 +38,13 @@ public class Main {
         }
     }
 
-    private static void handleUserInput(String userInput, ArrayList<Task> tasks) {
+    private static boolean handleUserInput(String userInput, ArrayList<Task> tasks) {
         switch (userInput) {
             case "1":
-                System.out.print("Enter task description: ");
-                String taskDescription = scanner.nextLine();
-                AddTask.add(tasks, taskDescription);
+                addTask(tasks);
                 break;
             case "2":
-                DeleteTask.delete(tasks, 0);
+                removeTask(tasks);
                 break;
             case "3":
                 ShowTasks.show(tasks);
@@ -57,24 +57,57 @@ public class Main {
                 DeleteDoneTasks.deleteDone(tasks);
                 break;
             case "6":
-                System.out.print("Enter index of task to mark as done: ");
-                int indexToMarkDone = scanner.nextInt();
-                scanner.nextLine();
-                if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
-                    Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
-                    taskToMarkDone.markAsDone();
-                    System.out.println("Task marked as done: " + taskToMarkDone.getDescription());
-                } else {
-                    System.out.println("Invalid index!");
-                }
+                markTaskAsDone(tasks);
                 break;
             case "7":
                 exitProgram(tasks);
-                break;
-
+                return true;
             default:
                 System.out.println("Invalid option. Please choose a valid action.");
         }
+        return false;
+    }
+
+    private static void addTask(ArrayList<Task> tasks) {
+        System.out.print("Enter task description: ");
+        String taskDescription = scanner.nextLine();
+        AddTask.add(tasks, taskDescription);
+    }
+
+    private static void removeTask(ArrayList<Task> tasks) {
+        int indexToRemove = getUserIndex(tasks);
+        DeleteTask.delete(tasks, indexToRemove);
+    }
+
+    private static void markTaskAsDone(ArrayList<Task> tasks) {
+        int indexToMarkDone = getUserIndex(tasks);
+        if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
+            Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
+            taskToMarkDone.markAsDone();
+            System.out.println("Task marked as done: " + taskToMarkDone.getDescription());
+        } else {
+            System.out.println("Invalid index!");
+        }
+    }
+
+    private static int getUserIndex(ArrayList<Task> tasks) {
+        int index = -1;
+        boolean validInput = false;
+        do {
+            try {
+                System.out.print("Enter index: ");
+                index = scanner.nextInt();
+                scanner.nextLine(); // Consume newline left by nextInt()
+                validInput = index > 0 && index <= tasks.size();
+                if (!validInput) {
+                    System.out.println("Invalid index. Please enter a valid index.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid index.");
+                scanner.nextLine(); // Consume invalid input
+            }
+        } while (!validInput);
+        return index;
     }
 
     // Other methods remain unchanged...
