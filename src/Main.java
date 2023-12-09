@@ -7,13 +7,13 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
     private static final String TASK_FILE = "tasks.txt";
     private static final String[] MENU_OPTIONS = {
-            "Add a task",
-            "Delete a task",
-            "Show tasks",
-            "Reset tasks",
-            "Delete done tasks",
-            "Mark task as done",
-            "Exit"
+            "\u001B[36mAdd a task\u001B[0m",
+            "\u001B[35mDelete a task\u001B[0m",
+            "\u001B[33mShow tasks\u001B[0m",
+            "\u001B[34mReset tasks\u001B[0m",
+            "\u001B[31mDelete done tasks\u001B[0m",
+            "\u001B[32mMark task as done\u001B[0m",
+            "\u001B[37mExit\u001B[0m"
     };
 
     public static void main(String[] args) {
@@ -32,11 +32,14 @@ public class Main {
     }
 
     private static void displayMenuOptions() {
-        System.out.println("\nChoose an action:");
+        System.out.println("\n*********************************");
+        System.out.println("******* Choose an action: *******");
+        System.out.println("*********************************");
         for (int i = 0; i < MENU_OPTIONS.length; i++) {
             System.out.println((i + 1) + ". " + MENU_OPTIONS[i]);
         }
     }
+
 
     private static boolean handleUserInput(String userInput, ArrayList<Task> tasks) {
         switch (userInput) {
