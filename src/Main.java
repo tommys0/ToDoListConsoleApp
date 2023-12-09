@@ -74,8 +74,21 @@ public class Main {
     private static void addTask(ArrayList<Task> tasks) {
         System.out.print("Enter task description: ");
         String taskDescription = scanner.nextLine();
-        AddTask.add(tasks, taskDescription);
+
+        System.out.print("Enter task priority (1-5 with 1 being the highest priority): ");
+        int taskPriority = scanner.nextInt();
+        if (taskPriority >= 6 || taskPriority <= 0) {
+            System.out.println("Invalid priority level. Please enter a level between 1 and 5.");
+            return;
+        }
+        scanner.nextLine();
+
+        AddTask.add(tasks, taskDescription, taskPriority);
     }
+
+
+
+
 
     private static void removeTask(ArrayList<Task> tasks) {
         int indexToRemove = getUserIndex(tasks);
@@ -100,20 +113,18 @@ public class Main {
             try {
                 System.out.print("Enter index: ");
                 index = scanner.nextInt();
-                scanner.nextLine(); // Consume newline left by nextInt()
+                scanner.nextLine();
                 validInput = index > 0 && index <= tasks.size();
                 if (!validInput) {
                     System.out.println("Invalid index. Please enter a valid index.");
                 }
             } catch (InputMismatchException e) {
                 System.out.println("Invalid input. Please enter a valid index.");
-                scanner.nextLine(); // Consume invalid input
+                scanner.nextLine();
             }
         } while (!validInput);
         return index;
     }
-
-    // Other methods remain unchanged...
 
     private static void exitProgram(ArrayList<Task> tasks) {
         saveTasksToFile(tasks);
@@ -125,7 +136,7 @@ public class Main {
     private static void saveTasksToFile(ArrayList<Task> tasks) {
         try (PrintWriter writer = new PrintWriter(new FileWriter("tasks.txt"))) {
             for (Task task : tasks) {
-                writer.println(task.getDescription() + "," + task.isDone());
+                writer.println(task.getDescription() + ";" + task.getPriority() + ";" + task.isDone());
             }
             System.out.println("Tasks saved to file.");
         } catch (IOException e) {
@@ -137,11 +148,12 @@ public class Main {
         try (BufferedReader reader = new BufferedReader(new FileReader("tasks.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 2) {
+                String[] parts = line.split(";");
+                if (parts.length == 3) {
                     String description = parts[0];
-                    boolean isDone = Boolean.parseBoolean(parts[1]);
-                    Task task = new Task(description);
+                    int priority = Integer.parseInt(parts[1]);
+                    boolean isDone = Boolean.parseBoolean(parts[2]);
+                    Task task = new Task(description, priority);
                     if (isDone) {
                         task.markAsDone();
                     }
@@ -153,4 +165,5 @@ public class Main {
             System.out.println("Error while loading tasks: " + e.getMessage());
         }
     }
+
 }
