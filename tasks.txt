@@ -1,3 +1,0 @@
-Optimalize this program,false
-Do error handling,false
-Edit UI so it looks better,false

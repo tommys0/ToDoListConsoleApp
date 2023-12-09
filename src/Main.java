@@ -1,87 +1,89 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.Scanner;
+import java.io.*;
+        import java.util.ArrayList;
+        import java.util.Scanner;
 
 public class Main {
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final String TASK_FILE = "tasks.txt";
+    private static final String[] MENU_OPTIONS = {
+            "Add a task",
+            "Delete a task",
+            "Show tasks",
+            "Reset tasks",
+            "Delete done tasks",
+            "Mark task as done",
+            "Exit"
+    };
+
     public static void main(String[] args) {
         ArrayList<Task> tasks = new ArrayList<>();
         loadTasksFromFile(tasks);
-        Scanner scanner = new Scanner(System.in);
-        String userInput;
 
         System.out.println("Welcome to your To-Do List!");
 
         while (true) {
-            System.out.println("\nChoose an action:");
-            System.out.println("1. Add a task");
-            System.out.println("2. Delete a task");
-            System.out.println("3. Show tasks");
-            System.out.println("4. Reset tasks");
-            System.out.println("5. Exit");
-            System.out.println("6. Mark task as done");
+            displayMenuOptions();
 
-            userInput = scanner.nextLine();
-
-            switch (userInput) {
-                case "1":
-                    System.out.print("Enter task to add: ");
-                    String taskToAdd = scanner.nextLine();
-                    AddTask.add(tasks, taskToAdd);
-                    break;
-                case "2":
-                    try {
-                        System.out.print("Enter index of task to delete: ");
-                        int indexToDelete = scanner.nextInt();
-                        scanner.nextLine();
-                        if (indexToDelete > 0 && indexToDelete <= tasks.size()) {
-                            DeleteTask.delete(tasks, indexToDelete - 1);
-                        } else {
-                            System.out.println("Invalid index!");
-                        }
-                    } catch (InputMismatchException e) {
-                        System.out.println("Invalid input! Please enter a valid integer.");
-                        scanner.nextLine(); // Clear invalid input
-                    }
-                    break;
-                case "3":
-                    ShowTasks.show(tasks);
-                    break;
-                case "4":
-                    ResetTasks.reset(tasks);
-                    System.out.println("Tasks reset.");
-                    break;
-                case "5":
-                    saveTasksToFile(tasks);
-                    System.out.println("Exiting the program. Goodbye!");
-                    scanner.close();
-                    System.exit(0);
-                    break;
-                case "6":
-                    try {
-                        System.out.print("Enter index of task to mark as done: ");
-                        int indexToMarkDone = scanner.nextInt();
-                        scanner.nextLine();
-                        if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
-                            Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
-                            taskToMarkDone.markAsDone();
-                            System.out.println("Task marked as done: " + taskToMarkDone.getDescription());
-                        } else {
-                            System.out.println("Invalid index!");
-                        }
-                    } catch (InputMismatchException e) {
-                        System.out.println("Invalid input! Please enter a valid integer.");
-                        scanner.nextLine(); // Clear invalid input
-                    }
-                    break;
-                default:
-                    System.out.println("Invalid option. Please choose a valid action.");
-            }
+            String userInput = scanner.nextLine();
+            handleUserInput(userInput, tasks);
         }
+    }
+
+    private static void displayMenuOptions() {
+        System.out.println("\nChoose an action:");
+        for (int i = 0; i < MENU_OPTIONS.length; i++) {
+            System.out.println((i + 1) + ". " + MENU_OPTIONS[i]);
+        }
+    }
+
+    private static void handleUserInput(String userInput, ArrayList<Task> tasks) {
+        switch (userInput) {
+            case "1":
+                System.out.print("Enter task description: ");
+                String taskDescription = scanner.nextLine();
+                AddTask.add(tasks, taskDescription);
+                break;
+            case "2":
+                DeleteTask.delete(tasks, 0);
+                break;
+            case "3":
+                ShowTasks.show(tasks);
+                break;
+            case "4":
+                ResetTasks.reset(tasks);
+                System.out.println("Tasks reset.");
+                break;
+            case "5":
+                DeleteDoneTasks.deleteDone(tasks);
+                break;
+            case "6":
+                System.out.print("Enter index of task to mark as done: ");
+                int indexToMarkDone = scanner.nextInt();
+                scanner.nextLine();
+                if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
+                    Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
+                    taskToMarkDone.markAsDone();
+                    System.out.println("Task marked as done: " + taskToMarkDone.getDescription());
+                } else {
+                    System.out.println("Invalid index!");
+                }
+                break;
+            case "7":
+                exitProgram(tasks);
+                break;
+
+            default:
+                System.out.println("Invalid option. Please choose a valid action.");
+        }
+    }
+
+    // Other methods remain unchanged...
+
+    private static void exitProgram(ArrayList<Task> tasks) {
+        saveTasksToFile(tasks);
+        System.out.println("Exiting the program. Goodbye!");
+        scanner.close();
+        System.exit(0);
     }
 
     private static void saveTasksToFile(ArrayList<Task> tasks) {
