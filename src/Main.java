@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main {
@@ -22,7 +23,7 @@ public class Main {
             System.out.println("3. Show tasks");
             System.out.println("4. Reset tasks");
             System.out.println("5. Exit");
-            System.out.println("6. Mark taks as done");
+            System.out.println("6. Mark task as done");
 
             userInput = scanner.nextLine();
 
@@ -33,10 +34,19 @@ public class Main {
                     AddTask.add(tasks, taskToAdd);
                     break;
                 case "2":
-                    System.out.print("Enter index of task to delete: ");
-                    int indexToDelete = scanner.nextInt();
-                    scanner.nextLine();
-                    DeleteTask.delete(tasks, indexToDelete - 1);
+                    try {
+                        System.out.print("Enter index of task to delete: ");
+                        int indexToDelete = scanner.nextInt();
+                        scanner.nextLine();
+                        if (indexToDelete > 0 && indexToDelete <= tasks.size()) {
+                            DeleteTask.delete(tasks, indexToDelete - 1);
+                        } else {
+                            System.out.println("Invalid index!");
+                        }
+                    } catch (InputMismatchException e) {
+                        System.out.println("Invalid input! Please enter a valid integer.");
+                        scanner.nextLine(); // Clear invalid input
+                    }
                     break;
                 case "3":
                     ShowTasks.show(tasks);
@@ -52,18 +62,22 @@ public class Main {
                     System.exit(0);
                     break;
                 case "6":
-                    System.out.print("Enter index of task to mark as done: ");
-                    int indexToMarkDone = scanner.nextInt();
-                    scanner.nextLine();
-                    if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
-                        Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
-                        taskToMarkDone.markAsDone();
-                        System.out.println("Task marked as done: " + taskToMarkDone.getDescription());
-                    } else {
-                        System.out.println("Invalid index!");
+                    try {
+                        System.out.print("Enter index of task to mark as done: ");
+                        int indexToMarkDone = scanner.nextInt();
+                        scanner.nextLine();
+                        if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
+                            Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
+                            taskToMarkDone.markAsDone();
+                            System.out.println("Task marked as done: " + taskToMarkDone.getDescription());
+                        } else {
+                            System.out.println("Invalid index!");
+                        }
+                    } catch (InputMismatchException e) {
+                        System.out.println("Invalid input! Please enter a valid integer.");
+                        scanner.nextLine(); // Clear invalid input
                     }
                     break;
-
                 default:
                     System.out.println("Invalid option. Please choose a valid action.");
             }
