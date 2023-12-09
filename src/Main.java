@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import java.time.LocalDate;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -75,16 +76,21 @@ public class Main {
         System.out.print("Enter task description: ");
         String taskDescription = scanner.nextLine();
 
-        System.out.print("Enter task priority (1-5 with 1 being the highest priority): ");
+        System.out.print("Enter task priority (1-5 with 1 being highest priority): ");
         int taskPriority = scanner.nextInt();
-        if (taskPriority >= 6 || taskPriority <= 0) {
-            System.out.println("Invalid priority level. Please enter a level between 1 and 5.");
+        if (taskPriority < 1 || taskPriority > 5) {
+            System.out.println("Invalid priority level.");
             return;
         }
         scanner.nextLine();
 
-        AddTask.add(tasks, taskDescription, taskPriority);
+        System.out.print("Enter due date (YYYY-MM-DD): ");
+        String dateInput = scanner.nextLine();
+        LocalDate dueDate = LocalDate.parse(dateInput);
+
+        AddTask.add(tasks, taskDescription, taskPriority, dueDate);
     }
+
 
 
 
@@ -136,7 +142,8 @@ public class Main {
     private static void saveTasksToFile(ArrayList<Task> tasks) {
         try (PrintWriter writer = new PrintWriter(new FileWriter("tasks.txt"))) {
             for (Task task : tasks) {
-                writer.println(task.getDescription() + ";" + task.getPriority() + ";" + task.isDone());
+                String formattedDate = task.getDeadline().toString();
+                writer.println(task.getDescription() + ";" + task.getPriority() + ";" + formattedDate + ";" + task.isDone());
             }
             System.out.println("Tasks saved to file.");
         } catch (IOException e) {
@@ -149,11 +156,12 @@ public class Main {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length == 3) {
+                if (parts.length >= 3) {
                     String description = parts[0];
                     int priority = Integer.parseInt(parts[1]);
-                    boolean isDone = Boolean.parseBoolean(parts[2]);
-                    Task task = new Task(description, priority);
+                    LocalDate deadline = LocalDate.parse(parts[2]);
+                    boolean isDone = Boolean.parseBoolean(parts[3]);
+                    Task task = new Task(description, priority, deadline);
                     if (isDone) {
                         task.markAsDone();
                     }
