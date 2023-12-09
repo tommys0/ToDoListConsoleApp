@@ -1,9 +1,15 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         ArrayList<Task> tasks = new ArrayList<>();
+        loadTasksFromFile(tasks);
         Scanner scanner = new Scanner(System.in);
         String userInput;
 
@@ -29,8 +35,8 @@ public class Main {
                 case "2":
                     System.out.print("Enter index of task to delete: ");
                     int indexToDelete = scanner.nextInt();
-                    scanner.nextLine(); // Consume the newline character
-                    DeleteTask.delete(tasks, indexToDelete - 1); // Adjust index to match user input
+                    scanner.nextLine();
+                    DeleteTask.delete(tasks, indexToDelete - 1);
                     break;
                 case "3":
                     ShowTasks.show(tasks);
@@ -40,14 +46,15 @@ public class Main {
                     System.out.println("Tasks reset.");
                     break;
                 case "5":
+                    saveTasksToFile(tasks);
                     System.out.println("Exiting the program. Goodbye!");
-                    scanner.close(); // Close the scanner before exiting
+                    scanner.close();
                     System.exit(0);
                     break;
                 case "6":
                     System.out.print("Enter index of task to mark as done: ");
                     int indexToMarkDone = scanner.nextInt();
-                    scanner.nextLine(); // Consume the newline character
+                    scanner.nextLine();
                     if (indexToMarkDone > 0 && indexToMarkDone <= tasks.size()) {
                         Task taskToMarkDone = tasks.get(indexToMarkDone - 1);
                         taskToMarkDone.markAsDone();
@@ -60,6 +67,38 @@ public class Main {
                 default:
                     System.out.println("Invalid option. Please choose a valid action.");
             }
+        }
+    }
+
+    private static void saveTasksToFile(ArrayList<Task> tasks) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("tasks.txt"))) {
+            for (Task task : tasks) {
+                writer.println(task.getDescription() + "," + task.isDone());
+            }
+            System.out.println("Tasks saved to file.");
+        } catch (IOException e) {
+            System.out.println("Error while saving tasks: " + e.getMessage());
+        }
+    }
+
+    private static void loadTasksFromFile(ArrayList<Task> tasks) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("tasks.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2) {
+                    String description = parts[0];
+                    boolean isDone = Boolean.parseBoolean(parts[1]);
+                    Task task = new Task(description);
+                    if (isDone) {
+                        task.markAsDone();
+                    }
+                    tasks.add(task);
+                }
+            }
+            System.out.println("Tasks loaded from file.");
+        } catch (IOException e) {
+            System.out.println("Error while loading tasks: " + e.getMessage());
         }
     }
 }
