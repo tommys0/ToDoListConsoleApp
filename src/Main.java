@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.time.LocalDate;
+import java.util.Set;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -14,6 +15,7 @@ public class Main {
             "\u001B[34mReset tasks\u001B[0m",
             "\u001B[31mDelete done tasks\u001B[0m",
             "\u001B[32mMark task as done\u001B[0m",
+            "\u001B[33mSettings\u001B[0m",
             "\u001B[37mExit\u001B[0m"
     };
 
@@ -64,6 +66,10 @@ public class Main {
                 markTaskAsDone(tasks);
                 break;
             case "7":
+                Settings settings = new Settings();
+                settings.modifyCategories();
+                break;
+            case "8":
                 exitProgram(tasks);
                 return true;
             default:

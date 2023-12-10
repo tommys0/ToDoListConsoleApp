@@ -1,0 +1,10 @@
+# settings.txt
+
+# Categories
+Categories: work, personal, shopping, miscellaneous
+
+# Priority Order (ascending or descending)
+PriorityOrder: ascending
+
+# Use Colors (true or false)
+UseColors: true
