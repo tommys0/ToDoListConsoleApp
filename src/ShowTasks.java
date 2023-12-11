@@ -24,7 +24,7 @@ public class ShowTasks {
                 System.out.println("Overdue by " + Math.abs(daysUntilDue) + " days");
             }
 
-            System.out.println("---------------------");
+            System.out.println("--------------------");
         }
     }
 }
