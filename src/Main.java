@@ -1,13 +1,16 @@
 import java.io.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-import java.time.LocalDate;
-import java.util.Set;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
     private static final String TASK_FILE = "tasks.txt";
+    private static final String SETTINGS_FILE = "settings.txt";
+    public static String getSettingsFile() {
+        return SETTINGS_FILE;
+    }
     private static final String[] MENU_OPTIONS = {
             "\u001B[36mAdd a task\u001B[0m",
             "\u001B[35mDelete a task\u001B[0m",
@@ -23,31 +26,46 @@ public class Main {
         ArrayList<Task> tasks = new ArrayList<>();
         loadTasksFromFile(tasks);
 
+        Settings settings = new Settings();
+        settings.loadSettingsFromFile();
+
         System.out.println("Welcome to your To-Do List!");
 
         boolean exit = false;
         do {
-            displayMenuOptions();
+            displayMenuOptions(settings.isColorOption());
 
             String userInput = scanner.nextLine();
-            exit = handleUserInput(userInput, tasks);
+            exit = handleUserInput(userInput, tasks, settings);
         } while (!exit);
+
+        settings.saveSettingsToFile();
     }
 
-    private static void displayMenuOptions() {
+    private static void displayMenuOptions(boolean colorOption) {
         System.out.println("\n*********************************");
         System.out.println("******* Choose an action: *******");
         System.out.println("*********************************");
-        for (int i = 0; i < MENU_OPTIONS.length; i++) {
-            System.out.println((i + 1) + ". " + MENU_OPTIONS[i]);
+
+        if (colorOption) {
+            for (int i = 0; i < MENU_OPTIONS.length; i++) {
+                System.out.println((i + 1) + ". " + MENU_OPTIONS[i]);
+            }
+        } else {
+            for (int i = 0; i < MENU_OPTIONS.length; i++) {
+                System.out.println((i + 1) + ". " + stripColor(MENU_OPTIONS[i]));
+            }
         }
     }
 
+    private static String stripColor(String input) {
+        return input.replaceAll("\u001B\\[[;\\d]*m", "");
+    }
 
-    private static boolean handleUserInput(String userInput, ArrayList<Task> tasks) {
+    private static boolean handleUserInput(String userInput, ArrayList<Task> tasks, Settings settings) {
         switch (userInput) {
             case "1":
-                addTask(tasks);
+                addTask(tasks, settings);
                 break;
             case "2":
                 removeTask(tasks);
@@ -66,11 +84,10 @@ public class Main {
                 markTaskAsDone(tasks);
                 break;
             case "7":
-                Settings settings = new Settings();
                 settings.modifyCategories();
-                break;
+                return false;
             case "8":
-                exitProgram(tasks);
+                exitProgram(tasks, settings);
                 return true;
             default:
                 System.out.println("Invalid option. Please choose a valid action.");
@@ -78,7 +95,15 @@ public class Main {
         return false;
     }
 
-    private static void addTask(ArrayList<Task> tasks) {
+    private static void exitProgram(ArrayList<Task> tasks, Settings settings) {
+        saveTasksToFile(tasks);
+        settings.saveSettingsToFile();
+        System.out.println("Exiting the program. Goodbye!");
+        scanner.close();
+        System.exit(0);
+    }
+
+    private static void addTask(ArrayList<Task> tasks, Settings settings) {
         System.out.print("Enter task description: ");
         String taskDescription = scanner.nextLine();
 
@@ -90,17 +115,51 @@ public class Main {
         }
         scanner.nextLine();
 
-        System.out.print("Enter due date (YYYY-MM-DD): ");
-        String dateInput = scanner.nextLine();
-        LocalDate dueDate = LocalDate.parse(dateInput);
+        System.out.println("Available categories:");
+        ArrayList<String> categories = settings.getCategories();
+        for (int i = 0; i < categories.size(); i++) {
+            System.out.println((i + 1) + ". " + categories.get(i));
+        }
 
-        AddTask.add(tasks, taskDescription, taskPriority, dueDate);
+        System.out.print("Choose a category number (or press Enter to skip): ");
+        String categoryChoice = scanner.nextLine().trim();
+        String taskCategory = null;
+
+        if (!categoryChoice.isEmpty()) {
+            try {
+                int categoryNumber = Integer.parseInt(categoryChoice);
+                if (categoryNumber >= 1 && categoryNumber <= categories.size()) {
+                    taskCategory = categories.get(categoryNumber - 1);
+                } else {
+                    System.out.println("Invalid category number. Skipping category.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Skipping category.");
+            }
+        } else {
+            System.out.println("No category chosen. Skipping category.");
+        }
+
+        LocalDate dueDate = getDueDate();
+
+        AddTask.add(tasks, taskDescription, taskPriority, dueDate, taskCategory);
     }
 
 
-
-
-
+    private static LocalDate getDueDate() {
+        LocalDate dueDate;
+        do {
+            try {
+                System.out.print("Enter due date (YYYY-MM-DD): ");
+                String dateInput = scanner.nextLine();
+                dueDate = LocalDate.parse(dateInput);
+                break;
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Please enter in YYYY-MM-DD.");
+            }
+        } while (true);
+        return dueDate;
+    }
 
     private static void removeTask(ArrayList<Task> tasks) {
         int indexToRemove = getUserIndex(tasks);
@@ -146,7 +205,7 @@ public class Main {
     }
 
     private static void saveTasksToFile(ArrayList<Task> tasks) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter("tasks.txt"))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(TASK_FILE))) {
             for (Task task : tasks) {
                 String formattedDate = task.getDeadline().toString();
                 writer.println(task.getDescription() + ";" + task.getPriority() + ";" + formattedDate + ";" + task.isDone());
@@ -158,16 +217,18 @@ public class Main {
     }
 
     private static void loadTasksFromFile(ArrayList<Task> tasks) {
-        try (BufferedReader reader = new BufferedReader(new FileReader("tasks.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(TASK_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length >= 3) {
+                if (parts.length >= 4) {
                     String description = parts[0];
                     int priority = Integer.parseInt(parts[1]);
                     LocalDate deadline = LocalDate.parse(parts[2]);
                     boolean isDone = Boolean.parseBoolean(parts[3]);
-                    Task task = new Task(description, priority, deadline);
+
+                    Task task = new Task(description, priority, deadline, "DefaultCategoryOrNull");
+
                     if (isDone) {
                         task.markAsDone();
                     }
@@ -179,5 +240,4 @@ public class Main {
             System.out.println("Error while loading tasks: " + e.getMessage());
         }
     }
-
 }

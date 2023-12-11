@@ -1,15 +1,18 @@
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class Task {
     private String description;
     private int priority;
-    private LocalDate deadline;
+    private LocalDate dueDate;
+    private String category;
     private boolean isDone;
 
-    public Task(String description, int priority, LocalDate deadline) {
+    public Task(String description, int priority, LocalDate dueDate, String category) {
         this.description = description;
         this.priority = priority;
-        this.deadline = deadline;
+        this.dueDate = dueDate;
+        this.category = "";
         this.isDone = false;
     }
 
@@ -21,23 +24,24 @@ public class Task {
         return priority;
     }
 
+    public LocalDate getDeadline() {
+        return dueDate;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
     public boolean isDone() {
         return isDone;
     }
 
     public void markAsDone() {
-        this.isDone = true;
+        isDone = true;
     }
 
-    public void markAsNotDone() {
-        this.isDone = false;
-    }
-
-    public LocalDate getDeadline() {
-        return deadline;
-    }
-
-    public void setDeadline(LocalDate deadline) {
-        this.deadline = deadline;
+    public long getDaysUntilDueDate() {
+        LocalDate currentDate = LocalDate.now();
+        return ChronoUnit.DAYS.between(currentDate, this.dueDate);
     }
 }

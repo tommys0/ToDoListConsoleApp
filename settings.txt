@@ -1,10 +1,6 @@
-# settings.txt
-
-# Categories
-Categories: work, personal, shopping, miscellaneous
-
-# Priority Order (ascending or descending)
-PriorityOrder: ascending
-
-# Use Colors (true or false)
-UseColors: true
+true
+false
+Category: home
+Category: work
+Category: family
+Category: side-projects
